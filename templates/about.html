@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About The System | SkinCare AI</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Central Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <style>
+        .about-container {
+            max-width: 1100px;
+            margin: 32px auto 60px;
+            padding: 0 24px;
+        }
+
+        .about-hero {
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            color: white;
+            padding: 40px 36px;
+            border-radius: var(--radius-xl);
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(30, 58, 138, 0.18);
+            margin-bottom: 36px;
+        }
+
+        .about-hero h1 {
+            color: white;
+            font-size: 34px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .about-hero p {
+            color: #ccfbf1;
+            font-size: 16px;
+            max-width: 760px;
+            margin: 0 auto;
+            line-height: 1.65;
+        }
+
+        .pipeline-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .pipeline-card {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: transform var(--transition-fast);
+        }
+
+        .pipeline-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .pipeline-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #eff6ff;
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .pipeline-card h3 {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .pipeline-card p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        .categories-chips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .category-chip {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-pill);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-fast);
+        }
+
+        .category-chip:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: var(--primary-accent);
+        }
+
+        .chip-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 900px) {
+            .pipeline-cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}" class="brand-logo">
+                <div class="brand-icon-wrap">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        SkinCare <span class="ai-chip">AI v2.4</span>
+                    </div>
+                    <span class="brand-subtitle">Clinical Dermatology Screening</span>
+                </div>
+            </a>
+
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav>
+                <ul class="nav-menu" id="navMenu">
+                    {% if session.get('user_id') %}
+                        <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="{{ url_for('predict') }}" class="nav-link"><i class="fa-solid fa-camera"></i> New Scan</a></li>
+                        <li><a href="{{ url_for('history') }}" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+                        <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user-doctor"></i> Profile</a></li>
+                        <li><a href="{{ url_for('model_info') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                        <li><a href="{{ url_for('about') }}" class="nav-link active"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                        <li><a href="{{ url_for('logout') }}" class="nav-logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('index') }}" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
+                        <li><a href="{{ url_for('model_info') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                        <li><a href="{{ url_for('about') }}" class="nav-link active"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                        <li><a href="{{ url_for('login') }}" class="nav-link"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a></li>
+                        <li><a href="{{ url_for('signup') }}" class="nav-cta-btn"><i class="fa-solid fa-user-plus"></i> Get Started</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="about-container">
+
+        <!-- Hero -->
+        <section class="about-hero">
+            <h1>About SkinCare AI Platform</h1>
+            <p>
+                An engineering and deep learning decision-support prototype exploring computer vision for preliminary photographic skin screening across 23 dermatological disease categories.
+            </p>
+        </section>
+
+        <!-- Project Pipeline Overview -->
+        <div class="ui-card" style="margin-bottom: 32px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--primary-accent); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">System Architecture & Engineering Methodology</h2>
+                    <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">Multi-tiered validation, inference, and evidence generation</p>
+                </div>
+            </div>
+
+            <div class="pipeline-cards-grid">
+                <div class="pipeline-card">
+                    <div class="pipeline-card-icon">
+                        <i class="fa-solid fa-shield-virus"></i>
+                    </div>
+                    <h3>1. Non-Skin Validation Guard</h3>
+                    <p>
+                        Dual-stage heuristic and convolutional pre-screening rejects non-dermatological objects (vehicles, pets, food, landscapes, documents) prior to clinical evaluation.
+                    </p>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="pipeline-card-icon">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                    <h3>2. MobileNetV2 Inference</h3>
+                    <p>
+                        Transfer learning model with depthwise separable convolutions maps subtle epidermal texture, color variance, and lesion margins at 224x224 RGB resolution.
+                    </p>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="pipeline-card-icon">
+                        <i class="fa-solid fa-book-medical"></i>
+                    </div>
+                    <h3>3. Clinical Knowledge Engine</h3>
+                    <p>
+                        Generates comprehensive management summaries, covering root etiology, prevention guidelines, daily skin regimens, prescription therapies, and urgent red flags.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 23 Categories Showcase -->
+        <div class="ui-card" style="margin-bottom: 32px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: #f0fdfa; color: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">23 Supported Dermatological Categories</h2>
+                    <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">Broad clinical coverage trained across diverse skin phenotypes</p>
+                </div>
+            </div>
+
+            <div class="categories-chips-grid">
+                <div class="category-chip"><span class="chip-num">1</span> Acne and Rosacea</div>
+                <div class="category-chip"><span class="chip-num">2</span> Actinic Keratosis & Malignancies</div>
+                <div class="category-chip"><span class="chip-num">3</span> Atopic Dermatitis</div>
+                <div class="category-chip"><span class="chip-num">4</span> Bullous Disease</div>
+                <div class="category-chip"><span class="chip-num">5</span> Cellulitis & Bacterial Infections</div>
+                <div class="category-chip"><span class="chip-num">6</span> Eczema Manifestations</div>
+                <div class="category-chip"><span class="chip-num">7</span> Exanthems & Drug Eruptions</div>
+                <div class="category-chip"><span class="chip-num">8</span> Alopecia & Hair Disorders</div>
+                <div class="category-chip"><span class="chip-num">9</span> Herpes, HPV & STDs</div>
+                <div class="category-chip"><span class="chip-num">10</span> Pigmentation Disorders</div>
+                <div class="category-chip"><span class="chip-num">11</span> Lupus & Connective Tissue</div>
+                <div class="category-chip"><span class="chip-num">12</span> Melanoma & Dysplastic Nevi</div>
+                <div class="category-chip"><span class="chip-num">13</span> Nail Fungus & Nail Diseases</div>
+                <div class="category-chip"><span class="chip-num">14</span> Poison Ivy & Contact Dermatitis</div>
+                <div class="category-chip"><span class="chip-num">15</span> Psoriasis & Lichen Planus</div>
+                <div class="category-chip"><span class="chip-num">16</span> Scabies & Insect Bites</div>
+                <div class="category-chip"><span class="chip-num">17</span> Seborrheic Keratoses & Tumors</div>
+                <div class="category-chip"><span class="chip-num">18</span> Systemic Disease Manifestations</div>
+                <div class="category-chip"><span class="chip-num">19</span> Tinea & Fungal Infections</div>
+                <div class="category-chip"><span class="chip-num">20</span> Urticaria & Hives</div>
+                <div class="category-chip"><span class="chip-num">21</span> Vascular Tumors</div>
+                <div class="category-chip"><span class="chip-num">22</span> Vasculitis Conditions</div>
+                <div class="category-chip"><span class="chip-num">23</span> Warts & Viral Lesions</div>
+            </div>
+        </div>
+
+        <!-- Clinical Safety Advisory -->
+        <div class="disclaimer-card" style="margin-top: 0;">
+            <div class="disclaimer-icon-wrap">
+                <i class="fa-solid fa-heart-crack"></i>
+            </div>
+            <div class="disclaimer-body">
+                <h4>Mandatory Clinical & Regulatory Notice</h4>
+                <p>
+                    SkinCare AI is an educational computer science research project. It does NOT possess FDA or CE certification as an active medical diagnostic device. Digital photographic classification cannot replace the holistic diagnostic process of a board-certified dermatologist, which incorporates palpation, dermoscopy, medical history, and biopsies. Always consult a licensed clinician for medical concerns.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="brand-title">
+                    🩺 SkinCare <span class="ai-chip">AI</span>
+                </div>
+                <p class="footer-desc">
+                    Educational dermatological screening platform powered by transfer-learning deep neural networks.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('predict') }}">New Scan</a></li>
+                    <li><a href="{{ url_for('history') }}">History</a></li>
+                    <li><a href="{{ url_for('model_info') }}">Model Metrics</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Clinical Info</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('about') }}">About System</a></li>
+                    <li><a href="{{ url_for('model_info') }}">23 Categories</a></li>
+                    <li><a href="{{ url_for('about') }}">Medical Advisory</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Engine Status</h4>
+                <div class="footer-status-card">
+                    <div class="status-indicator">
+                        <div class="status-pulse-dot"></div>
+                        Model Server Online
+                    </div>
+                    <p>MobileNetV2 Fine-Tuned (23 classes) • Non-Skin Validator Active</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SkinCare AI System. Educational Deep Learning Research Prototype.</span>
+            <span>Always consult a certified dermatologist for clinical diagnosis.</span>
+        </div>
+    </footer>
+
+    <script>
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+            });
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Architecture & Metrics | SkinCare AI</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Central Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <style>
+        .metrics-container {
+            max-width: 1200px;
+            margin: 32px auto 60px;
+            padding: 0 24px;
+        }
+
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .summary-stat-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast);
+        }
+
+        .summary-stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .summary-val {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            font-family: var(--font-heading);
+            margin-bottom: 4px;
+        }
+
+        .summary-lbl {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .arch-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .arch-card {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            border-left: 4px solid var(--primary-accent);
+        }
+
+        .arch-card h4 {
+            font-size: 15.5px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .arch-card p {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Search Table */
+        .table-search-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .table-search-input {
+            padding: 10px 16px 10px 38px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--card-border);
+            font-size: 14px;
+            min-width: 280px;
+            outline: none;
+            background: #f8fafc;
+        }
+
+        .table-search-input:focus {
+            background: white;
+            border-color: var(--primary-accent);
+        }
+
+        .badge-metric {
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .metric-high { background: #dcfce7; color: #166534; }
+        .metric-mid { background: #dbeafe; color: #1e40af; }
+        .metric-low { background: #fee2e2; color: #991b1b; }
+
+        @media (max-width: 900px) {
+            .stats-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .arch-cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .stats-summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}" class="brand-logo">
+                <div class="brand-icon-wrap">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        SkinCare <span class="ai-chip">AI v2.4</span>
+                    </div>
+                    <span class="brand-subtitle">Clinical Dermatology Screening</span>
+                </div>
+            </a>
+
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav>
+                <ul class="nav-menu" id="navMenu">
+                    {% if session.get('user_id') %}
+                        <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                        <li><a href="{{ url_for('predict') }}" class="nav-link"><i class="fa-solid fa-camera"></i> New Scan</a></li>
+                        <li><a href="{{ url_for('history') }}" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+                        <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user-doctor"></i> Profile</a></li>
+                        <li><a href="{{ url_for('model_info') }}" class="nav-link active"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                        <li><a href="{{ url_for('about') }}" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                        <li><a href="{{ url_for('logout') }}" class="nav-logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('index') }}" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
+                        <li><a href="{{ url_for('model_info') }}" class="nav-link active"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                        <li><a href="{{ url_for('about') }}" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                        <li><a href="{{ url_for('login') }}" class="nav-link"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a></li>
+                        <li><a href="{{ url_for('signup') }}" class="nav-cta-btn"><i class="fa-solid fa-user-plus"></i> Get Started</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="metrics-container">
+
+        <div class="page-header">
+            <div class="page-badge">
+                <i class="fa-solid fa-microchip"></i> Technical Specifications
+            </div>
+            <h1 class="page-title">Model Architecture & Empirical Metrics</h1>
+            <p class="page-subtitle">
+                Transparent technical evaluation of the MobileNetV2 transfer learning pipeline, 23 disease categories, and empirical results on unseen test partitions.
+            </p>
+        </div>
+
+        <!-- High-Level Stats -->
+        <div class="stats-summary-grid">
+            <div class="summary-stat-card">
+                <div class="summary-val">MobileNetV2</div>
+                <div class="summary-lbl">Backbone Network</div>
+            </div>
+            <div class="summary-stat-card">
+                <div class="summary-val">23</div>
+                <div class="summary-lbl">Clinical Classes</div>
+            </div>
+            <div class="summary-stat-card">
+                <div class="summary-val">19,559</div>
+                <div class="summary-lbl">Total Dataset Images</div>
+            </div>
+            <div class="summary-stat-card">
+                <div class="summary-val" style="color: var(--teal);">224 x 224</div>
+                <div class="summary-lbl">Input Image Size (px)</div>
+            </div>
+        </div>
+
+        <!-- Architecture Breakdown Card -->
+        <div class="ui-card" style="margin-bottom: 32px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: var(--primary-accent); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800; color: var(--primary);">Convolutional Neural Network Pipeline</h2>
+                    <p style="font-size: 13.5px; color: var(--text-muted); margin: 0;">Two-stage transfer learning with depthwise separable convolutions</p>
+                </div>
+            </div>
+
+            <div class="arch-cards-grid">
+                <div class="arch-card">
+                    <h4><i class="fa-solid fa-cube"></i> Base Extractor</h4>
+                    <p>MobileNetV2 pre-trained on ImageNet. Inverted residual blocks with linear bottlenecks optimized for edge inference.</p>
+                </div>
+
+                <div class="arch-card">
+                    <h4><i class="fa-solid fa-image"></i> Input Preprocessing</h4>
+                    <p>Standardized (224, 224, 3) RGB tensor mapping with internal pixel rescaling layer to avoid scaling discrepancies.</p>
+                </div>
+
+                <div class="arch-card">
+                    <h4><i class="fa-solid fa-arrows-spin"></i> Data Augmentation</h4>
+                    <p>Spatial rotation, zoom, horizontal flips, and contrast jittering during training for dermatological scale invariance.</p>
+                </div>
+
+                <div class="arch-card">
+                    <h4><i class="fa-solid fa-sliders"></i> Classification Head</h4>
+                    <p>GlobalAveragePooling2D, Dropout (rate 0.35), followed by Dense projection with 23 softmax class outputs.</p>
+                </div>
+
+                <div class="arch-card">
+                    <h4><i class="fa-solid fa-layer-group"></i> Stage 1: Head Tuning</h4>
+                    <p>Frozen backbone with Adam optimizer (lr = 1e-3) training the custom 23-way clinical classification layers.</p>
+                </div>
+
+                <div class="arch-card">
+                    <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Stage 2: Fine-Tuning</h4>
+                    <p>Unfreezing the top 30 convolutional blocks with micro learning rate (1e-5) to adapt specialized dermis features.</p>
+                </div>
+            </div>
+        </div>
+
+        
+
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="brand-title">
+                    🩺 SkinCare <span class="ai-chip">AI</span>
+                </div>
+                <p class="footer-desc">
+                    Educational dermatological screening platform powered by transfer-learning deep neural networks.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('predict') }}">New Scan</a></li>
+                    <li><a href="{{ url_for('history') }}">History</a></li>
+                    <li><a href="{{ url_for('model_info') }}">Model Metrics</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Clinical Info</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('about') }}">About System</a></li>
+                    <li><a href="{{ url_for('model_info') }}">23 Categories</a></li>
+                    <li><a href="{{ url_for('about') }}">Medical Advisory</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Engine Status</h4>
+                <div class="footer-status-card">
+                    <div class="status-indicator">
+                        <div class="status-pulse-dot"></div>
+                        Model Server Online
+                    </div>
+                    <p>MobileNetV2 Fine-Tuned (23 classes) • Non-Skin Validator Active</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SkinCare AI System. Educational Deep Learning Research Prototype.</span>
+            <span>Always consult a certified dermatologist for clinical diagnosis.</span>
+        </div>
+    </footer>
+
+    <!-- Interactive Table Filter -->
+    <script>
+        const classSearchInput = document.getElementById('classSearchInput');
+        const classesTable = document.getElementById('classesTable');
+
+        if (classSearchInput && classesTable) {
+            classSearchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                const rows = classesTable.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+            });
+        }
+
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+            });
+        }
+    </script>
+
+</body>
+</html>

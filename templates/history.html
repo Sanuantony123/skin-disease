@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment History | SkinCare AI</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Central Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <style>
+        .history-container {
+            max-width: 1200px;
+            margin: 32px auto 60px;
+            padding: 0 24px;
+        }
+
+        /* Filter Toolbar */
+        .history-toolbar {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 11px 16px 11px 40px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--card-border);
+            font-size: 14px;
+            outline: none;
+            transition: all var(--transition-fast);
+            background: #f8fafc;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-accent);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* History Cards Grid */
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .history-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), border-color var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: #93c5fd;
+        }
+
+        .history-card-img-wrap {
+            position: relative;
+            height: 220px;
+            background: #0f172a;
+            overflow: hidden;
+        }
+
+        .history-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform var(--transition-base);
+        }
+
+        .history-card:hover .history-card-img {
+            transform: scale(1.04);
+        }
+
+        .history-card-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(6px);
+            color: #34d399;
+            font-size: 12.5px;
+            font-weight: 800;
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-card-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .history-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 6px;
+            line-height: 1.35;
+        }
+
+        .history-card-ref {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        .history-progress-wrap {
+            margin-bottom: 14px;
+        }
+
+        .history-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .history-progress-track {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+        }
+
+        .history-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0d9488, #10b981);
+            border-radius: var(--radius-pill);
+        }
+
+        .history-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1px solid var(--card-border);
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        /* Empty State */
+        .empty-history-wrapper {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 80px 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .empty-history-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+        }
+
+        @media (max-width: 768px) {
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+            .history-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                <div class="brand-icon-wrap">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        SkinCare <span class="ai-chip">AI v2.4</span>
+                    </div>
+                    <span class="brand-subtitle">Clinical Dermatology Screening</span>
+                </div>
+            </a>
+
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('predict') }}" class="nav-link"><i class="fa-solid fa-camera"></i> New Scan</a></li>
+                    <li><a href="{{ url_for('history') }}" class="nav-link active"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+                    <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user-doctor"></i> Profile</a></li>
+                    <li><a href="{{ url_for('model_info') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                    <li><a href="{{ url_for('about') }}" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="nav-logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-alert flash-{{ category }}" role="alert">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <div>{{ message }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main History Container -->
+    <main class="history-container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-badge">
+                <i class="fa-solid fa-database"></i> Diagnostic Archive
+            </div>
+            <h1 class="page-title">Skin Diagnostic Assessment History</h1>
+            <p class="page-subtitle">
+                Review your archived neural classification screenings, confidence trends, and clinical records.
+            </p>
+        </div>
+
+        {% if history %}
+        <!-- Filter & Search Toolbar -->
+        <div class="history-toolbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by condition name or date (e.g., Eczema, 2026)...">
+            </div>
+
+            <div class="toolbar-actions">
+                <span class="meta-pill" id="recordCountPill">
+                    <i class="fa-solid fa-layer-group"></i> Total Records: {{ history|length }}
+                </span>
+                <button type="button" class="btn btn-danger btn-sm" id="openClearModalBtn">
+                    <i class="fa-solid fa-trash-can"></i> Clear History
+                </button>
+            </div>
+        </div>
+
+        <!-- History Cards Grid -->
+        <div class="history-grid" id="historyGrid">
+            {% for item in history %}
+            <div class="history-card" data-title="{{ item.prediction|lower }}" data-date="{{ item.date_time|lower }}">
+                
+                <div class="history-card-img-wrap">
+                    <img src="{{ item.image_url }}" class="history-card-img" alt="Scanned lesion" loading="lazy">
+                    <div class="history-card-badge">
+                        <i class="fa-solid fa-chart-line"></i> {{ "%.1f"|format(item.confidence|float) }}%
+                    </div>
+                </div>
+
+                <div class="history-card-body">
+                    <div>
+                        <h3 class="history-card-title">{{ item.prediction }}</h3>
+                        <div class="history-card-ref">Case: #{{ item.image_filename[:8]|upper }}</div>
+
+                        <div class="history-progress-wrap">
+                            <div class="history-progress-labels">
+                                <span>Model Confidence</span>
+                                <span>{{ "%.1f"|format(item.confidence|float) }}%</span>
+                            </div>
+                            <div class="history-progress-track">
+                                <div class="history-progress-fill" style="width: {{ item.confidence|float }}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-card-footer">
+                        <span><i class="fa-regular fa-calendar-days"></i> {{ item.date_time }}</span>
+                        <a href="{{ url_for('predict') }}" style="font-weight: 700; color: var(--primary-accent);">
+                            Scan Again <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- No Filter Results Notice -->
+        <div id="noSearchResults" style="display: none; text-align: center; padding: 60px 20px; background: white; border-radius: var(--radius-lg); border: 1px solid var(--card-border); margin-top: 20px;">
+            <i class="fa-solid fa-search" style="font-size: 36px; color: #cbd5e1; margin-bottom: 12px;"></i>
+            <h3 style="font-size: 18px; color: var(--text-primary); margin-bottom: 6px;">No matching records found</h3>
+            <p style="font-size: 14px; color: var(--text-muted);">Try searching with another keyword or clear the search filter.</p>
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="empty-history-wrapper">
+            <div class="empty-history-icon">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h2 style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 8px;">
+                No Prediction History Yet
+            </h2>
+            <p style="font-size: 15px; color: var(--text-muted); max-width: 500px; margin: 0 auto 24px;">
+                You haven't conducted any skin diagnostic scans yet. Take or upload a photo to generate your first AI assessment.
+            </p>
+            <a href="{{ url_for('predict') }}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-camera"></i> Run Your First Diagnosis
+            </a>
+        </div>
+        {% endif %}
+
+    </main>
+
+    <!-- Clear History Confirmation Modal -->
+    <div class="modal-overlay" id="clearModal" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <button type="button" class="modal-close-btn" id="closeClearModalBtn" aria-label="Close modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h2 style="font-size: 22px; color: #991b1b; margin-bottom: 8px;">Clear Prediction History?</h2>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+                This will permanently delete all your past diagnostic assessment records and uploaded photos. This action cannot be undone.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button type="button" class="btn btn-secondary" id="cancelClearBtn">Cancel</button>
+                <form action="{{ url_for('clear_history') }}" method="POST">
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Clear All History
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="brand-title">
+                    🩺 SkinCare <span class="ai-chip">AI</span>
+                </div>
+                <p class="footer-desc">
+                    Educational dermatological screening platform powered by transfer-learning deep neural networks.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('predict') }}">New Scan</a></li>
+                    <li><a href="{{ url_for('history') }}">History</a></li>
+                    <li><a href="{{ url_for('model_info') }}">Model Metrics</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Clinical Info</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('about') }}">About System</a></li>
+                    <li><a href="{{ url_for('model_info') }}">23 Categories</a></li>
+                    <li><a href="{{ url_for('about') }}">Medical Advisory</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Engine Status</h4>
+                <div class="footer-status-card">
+                    <div class="status-indicator">
+                        <div class="status-pulse-dot"></div>
+                        Model Server Online
+                    </div>
+                    <p>MobileNetV2 Fine-Tuned (23 classes) • Non-Skin Validator Active</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SkinCare AI System. Educational Deep Learning Research Prototype.</span>
+            <span>Always consult a certified dermatologist for clinical diagnosis.</span>
+        </div>
+    </footer>
+
+    <!-- Interactive Search & Modal Scripts -->
+    <script>
+        // Real-Time Search Filter
+        const searchInput = document.getElementById('searchInput');
+        const historyGrid = document.getElementById('historyGrid');
+        const noSearchResults = document.getElementById('noSearchResults');
+        const recordCountPill = document.getElementById('recordCountPill');
+
+        if (searchInput && historyGrid) {
+            searchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                const cards = historyGrid.getElementsByClassName('history-card');
+                let visibleCount = 0;
+
+                Array.from(cards).forEach(card => {
+                    const title = card.getAttribute('data-title') || '';
+                    const date = card.getAttribute('data-date') || '';
+                    if (title.includes(term) || date.includes(term)) {
+                        card.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                if (noSearchResults) {
+                    noSearchResults.style.display = visibleCount === 0 ? 'block' : 'none';
+                }
+                if (recordCountPill) {
+                    recordCountPill.innerHTML = `<i class="fa-solid fa-layer-group"></i> Showing: ${visibleCount} of ${cards.length}`;
+                }
+            });
+        }
+
+        // Clear History Modal
+        const clearModal = document.getElementById('clearModal');
+        const openClearModalBtn = document.getElementById('openClearModalBtn');
+        const closeClearModalBtn = document.getElementById('closeClearModalBtn');
+        const cancelClearBtn = document.getElementById('cancelClearBtn');
+
+        if (openClearModalBtn && clearModal) {
+            openClearModalBtn.addEventListener('click', () => {
+                clearModal.classList.add('active');
+            });
+            const closeModal = () => clearModal.classList.remove('active');
+            if (closeClearModalBtn) closeClearModalBtn.addEventListener('click', closeModal);
+            if (cancelClearBtn) cancelClearBtn.addEventListener('click', closeModal);
+            clearModal.addEventListener('click', (e) => {
+                if (e.target === clearModal) closeModal();
+            });
+        }
+
+        // Mobile Nav
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+            });
+        }
+    </script>
+
+</body>
+</html>

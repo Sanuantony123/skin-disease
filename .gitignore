@@ -1,0 +1,33 @@
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+dataset/
+backend/uploads/
+backend/database/*.db
+static/uploads/
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+# Temporary and backup files
+*.backup
+*.npy
+scripts_temp/
+
+# Local databases and uploaded images
+static/uploads/
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# Candidate and intermediate models
+backend/models/*candidate.keras
+backend/models/skin_disease_stage1.keras
+backend/models/skin_disease_finetuned.keras
+backend/models/skin_disease_weighted.keras

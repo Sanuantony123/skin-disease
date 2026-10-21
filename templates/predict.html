@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Diagnostic Studio | SkinCare AI</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Central Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <style>
+        /* Specific Styles for Prediction Studio */
+        .studio-container {
+            max-width: 960px;
+            margin: 32px auto 60px;
+            padding: 0 20px;
+        }
+
+        .input-mode-tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 6px;
+            border-radius: var(--radius-md);
+            gap: 6px;
+            margin-bottom: 24px;
+            border: 1px solid var(--card-border);
+        }
+
+        .mode-tab-btn {
+            flex: 1;
+            padding: 12px 18px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14.5px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all var(--transition-fast);
+        }
+
+        .mode-tab-btn i {
+            font-size: 16px;
+        }
+
+        .mode-tab-btn.active {
+            background: #ffffff;
+            color: var(--primary-accent);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Drop Zone */
+        .upload-dropzone {
+            border: 2px dashed #93c5fd;
+            background: #f8fafc;
+            border-radius: var(--radius-lg);
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            position: relative;
+        }
+
+        .upload-dropzone:hover, .upload-dropzone.drag-over {
+            border-color: var(--primary-accent);
+            background: #eff6ff;
+            transform: scale(1.005);
+        }
+
+        .dropzone-icon-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            margin: 0 auto 18px;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
+            transition: transform var(--transition-smooth);
+        }
+
+        .upload-dropzone:hover .dropzone-icon-ring {
+            transform: translateY(-4px);
+        }
+
+        .dropzone-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .dropzone-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .file-select-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: white;
+            padding: 11px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.2);
+            transition: all var(--transition-fast);
+        }
+
+        .file-select-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        /* Camera Viewfinder Panel */
+        .camera-panel {
+            display: none;
+            background: #0f172a;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-video-wrap {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto 18px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 340px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Reticle overlay */
+        .reticle-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 220px;
+            height: 220px;
+            border: 2px dashed rgba(20, 184, 166, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.35);
+            pointer-events: none;
+        }
+
+        .reticle-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+        }
+
+        .reticle-crosshair::before, .reticle-crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(20, 184, 166, 0.9);
+        }
+
+        .reticle-crosshair::before {
+            top: 9px;
+            left: 0;
+            width: 20px;
+            height: 2px;
+        }
+
+        .reticle-crosshair::after {
+            top: 0;
+            left: 9px;
+            width: 2px;
+            height: 20px;
+        }
+
+        .camera-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        /* Image Preview Box */
+        .preview-card {
+            display: none;
+            margin-top: 28px;
+            border-top: 1px solid var(--card-border);
+            padding-top: 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        .preview-stage {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            background: #f1f5f9;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 380px;
+            display: block;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+        }
+
+        /* Holographic Scan Line Animation */
+        .scan-laser-line {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #06b6d4, #10b981, transparent);
+            box-shadow: 0 0 16px 4px rgba(6, 182, 212, 0.8);
+            z-index: 10;
+        }
+
+        .scanning-active .scan-laser-line {
+            display: block;
+            animation: scanLaser 1.8s ease-in-out infinite alternate;
+        }
+
+        @keyframes scanLaser {
+            0% { top: 0%; opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { top: 96%; opacity: 0.6; }
+        }
+
+        .preview-meta {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 12.5px;
+            color: var(--text-secondary);
+        }
+
+        .reset-upload-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all var(--transition-fast);
+        }
+
+        .reset-upload-btn:hover {
+            background: var(--danger-light);
+        }
+
+        .analyze-submit-btn {
+            display: none;
+            width: 100%;
+            margin-top: 24px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #0d9488, #0f766e);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 17px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3);
+            transition: all var(--transition-smooth);
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .analyze-submit-btn:hover {
+            background: linear-gradient(135deg, #0f766e, #115e59);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(13, 148, 136, 0.4);
+        }
+
+        /* Progressive Inference Status Ticker */
+        .analysis-progress-card {
+            display: none;
+            margin-top: 24px;
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            border-radius: var(--radius-md);
+            padding: 22px;
+            text-align: left;
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .progress-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #ccfbf1;
+            border-top: 3px solid var(--teal-accent);
+            border-radius: 50%;
+            animation: spinLoader 0.75s linear infinite;
+        }
+
+        .progress-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--teal);
+        }
+
+        .progress-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .ticker-steps {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 13.5px;
+        }
+
+        .ticker-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            transition: color 0.3s;
+        }
+
+        .ticker-step.active {
+            color: var(--teal);
+            font-weight: 700;
+        }
+
+        .ticker-step.done {
+            color: var(--emerald);
+        }
+
+        /* Quality Guidelines Grid */
+        .guidelines-grid {
+            margin-top: 36px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .guide-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 18px 16px;
+            text-align: center;
+            transition: transform var(--transition-fast), border-color var(--transition-fast);
+        }
+
+        .guide-card:hover {
+            transform: translateY(-2px);
+            border-color: #93c5fd;
+        }
+
+        .guide-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: #eff6ff;
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin: 0 auto 12px;
+        }
+
+        .guide-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .guide-text {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            line-height: 1.45;
+        }
+
+        @media (max-width: 768px) {
+            .guidelines-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .guidelines-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                <div class="brand-icon-wrap">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        SkinCare <span class="ai-chip">AI v2.4</span>
+                    </div>
+                    <span class="brand-subtitle">Clinical Dermatology Screening</span>
+                </div>
+            </a>
+
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('predict') }}" class="nav-link active"><i class="fa-solid fa-camera"></i> New Scan</a></li>
+                    <li><a href="{{ url_for('history') }}" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+                    <li><a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user-doctor"></i> Profile</a></li>
+                    <li><a href="{{ url_for('model_info') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                    <li><a href="{{ url_for('about') }}" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="nav-logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'invalid_skin_image' %}
+                        <div class="flash-alert invalid-skin-alert" role="alert">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div>
+                                <strong>Non-Skin Photo Detected:</strong> {{ message }}
+                            </div>
+                        </div>
+                        <script>
+                            window.addEventListener('DOMContentLoaded', function() {
+                                if (typeof openInvalidImageModal === 'function') {
+                                    openInvalidImageModal({{ message|tojson }});
+                                }
+                            });
+                        </script>
+                    {% else %}
+                        <div class="flash-alert flash-{{ category }}" role="alert">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="studio-container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-badge">
+                <i class="fa-solid fa-shield-virus"></i> Dermatological Screening Studio
+            </div>
+            <h1 class="page-title">Upload Skin Image For AI Diagnosis</h1>
+            <p class="page-subtitle">
+                High-precision deep learning analysis powered by MobileNetV2 with intelligent non-skin rejection and multi-class differential diagnosis.
+            </p>
+        </div>
+
+        <!-- Diagnostic Studio Card -->
+        <div class="ui-card">
+
+            <!-- Input Tabs -->
+            <div class="input-mode-tabs">
+                <button type="button" class="mode-tab-btn active" id="tabUploadBtn">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Photo
+                </button>
+                <button type="button" class="mode-tab-btn" id="tabCameraBtn">
+                    <i class="fa-solid fa-camera"></i> Live Camera Capture
+                </button>
+            </div>
+
+            <form id="uploadForm" action="{{ url_for('predict') }}" method="POST" enctype="multipart/form-data">
+                
+                <!-- Hidden Real File Input -->
+                <input type="file" id="imageInput" name="image" style="display: none;" accept=".jpg,.jpeg,.png,.webp,.bmp" required>
+
+                <!-- 1. Drag & Drop Upload Zone -->
+                <div class="upload-dropzone" id="dropZone">
+                    <div class="dropzone-icon-ring">
+                        <i class="fa-solid fa-file-medical"></i>
+                    </div>
+                    <h3 class="dropzone-title">Drag & Drop Lesion Photo Here</h3>
+                    <p class="dropzone-desc">Supported formats: JPG, PNG, WEBP, BMP (Max: 10 MB)</p>
+                    <button type="button" class="file-select-btn" id="browseTriggerBtn">
+                        <i class="fa-solid fa-folder-open"></i> Browse Files
+                    </button>
+                </div>
+
+                <!-- 2. Camera Viewfinder Panel -->
+                <div class="camera-panel" id="cameraPanel">
+                    <div class="camera-video-wrap">
+                        <video id="cameraVideo" autoplay playsinline muted></video>
+                        <div class="reticle-overlay">
+                            <div class="reticle-crosshair"></div>
+                        </div>
+                    </div>
+                    <div class="camera-actions">
+                        <button type="button" class="btn btn-teal" id="capturePhotoBtn">
+                            <i class="fa-solid fa-circle-dot"></i> Snap Lesion Photo
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelCameraBtn">
+                            <i class="fa-solid fa-xmark"></i> Close Camera
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Preview Box (Common to both modes) -->
+                <div class="preview-card" id="previewCard">
+                    <div class="preview-stage" id="previewStage">
+                        <img id="previewImg" class="preview-image" alt="Selected skin lesion preview">
+                        <div class="scan-laser-line"></div>
+                    </div>
+
+                    <div class="preview-meta">
+                        <span class="meta-pill" id="metaFilename">
+                            <i class="fa-solid fa-image"></i> image.jpg
+                        </span>
+                        <span class="meta-pill" id="metaFilesize">
+                            <i class="fa-solid fa-hard-drive"></i> 250 KB
+                        </span>
+                        <span class="meta-pill" id="metaStatus">
+                            <i class="fa-solid fa-circle-check" style="color: var(--emerald);"></i> Ready for Scan
+                        </span>
+                        <button type="button" class="reset-upload-btn" id="resetUploadBtn">
+                            <i class="fa-solid fa-trash-can"></i> Remove
+                        </button>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="analyze-submit-btn" id="submitBtn">
+                        <i class="fa-solid fa-microscope"></i> Run Neural Skin Analysis
+                    </button>
+                </div>
+
+                <!-- 4. Progressive Ticker Status (Shown when submitting) -->
+                <div class="analysis-progress-card" id="analysisProgressCard">
+                    <div class="progress-header">
+                        <div class="progress-spinner"></div>
+                        <div>
+                            <div class="progress-title">Analyzing Dermatological Lesion...</div>
+                            <div class="progress-sub">Running deep convolutional inference and texture checks</div>
+                        </div>
+                    </div>
+                    <ul class="ticker-steps">
+                        <li class="ticker-step done" id="step1">
+                            <i class="fa-solid fa-check-circle"></i> Image loaded & scaled to 224x224 RGB
+                        </li>
+                        <li class="ticker-step active" id="step2">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Dermatological skin texture validation...
+                        </li>
+                        <li class="ticker-step" id="step3">
+                            <i class="fa-regular fa-circle"></i> MobileNetV2 neural feature extraction...
+                        </li>
+                        <li class="ticker-step" id="step4">
+                            <i class="fa-regular fa-circle"></i> Computing differential class probabilities...
+                        </li>
+                    </ul>
+                </div>
+
+            </form>
+
+            <!-- Photography Quality Guidelines -->
+            <div class="guidelines-grid">
+                <div class="guide-card">
+                    <div class="guide-icon">
+                        <i class="fa-solid fa-sun"></i>
+                    </div>
+                    <div class="guide-title">Optimal Lighting</div>
+                    <div class="guide-text">Use bright, even daylight or diffuse white light. Avoid flash glare.</div>
+                </div>
+
+                <div class="guide-card">
+                    <div class="guide-icon">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <div class="guide-title">Sharp Focus</div>
+                    <div class="guide-text">Ensure the camera focuses on epidermal texture and margins without blur.</div>
+                </div>
+
+                <div class="guide-card">
+                    <div class="guide-icon">
+                        <i class="fa-solid fa-crop-simple"></i>
+                    </div>
+                    <div class="guide-title">Center Lesion</div>
+                    <div class="guide-text">Frame the affected area so it fills 60–80% of the viewfinder.</div>
+                </div>
+
+                <div class="guide-card">
+                    <div class="guide-icon">
+                        <i class="fa-solid fa-hand-dots"></i>
+                    </div>
+                    <div class="guide-title">Clean Dermis</div>
+                    <div class="guide-text">Remove makeup, dense ointments, or dressings before photographing.</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="brand-title">
+                    🩺 SkinCare <span class="ai-chip">AI</span>
+                </div>
+                <p class="footer-desc">
+                    Educational dermatological screening platform powered by transfer-learning deep neural networks.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('predict') }}">New Scan</a></li>
+                    <li><a href="{{ url_for('history') }}">History</a></li>
+                    <li><a href="{{ url_for('model_info') }}">Model Metrics</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Clinical Info</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('about') }}">About System</a></li>
+                    <li><a href="{{ url_for('model_info') }}">23 Categories</a></li>
+                    <li><a href="{{ url_for('about') }}">Dermatology Disclaimer</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>System Status</h4>
+                <div class="footer-status-card">
+                    <div class="status-indicator">
+                        <div class="status-pulse-dot"></div>
+                        Model Engine Online
+                    </div>
+                    <p>MobileNetV2 Fine-Tuned (23 classes) • Non-Skin Validator Active</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SkinCare AI System. Educational Deep Learning Research Prototype.</span>
+            <span>Always consult a licensed medical dermatologist for clinical diagnosis.</span>
+        </div>
+    </footer>
+
+    <!-- INVALID IMAGE POPUP MODAL -->
+    <div class="modal-overlay" id="invalidImageModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            <button type="button" class="modal-close-btn" id="closeModalXBtn" aria-label="Close modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div style="width: 70px; height: 70px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; box-shadow: 0 0 0 10px rgba(220, 38, 38, 0.1);">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+            <h2 id="modalTitle" style="font-size: 24px; color: #991b1b; margin-bottom: 6px;">Invalid Image Uploaded</h2>
+            <p style="font-size: 15px; color: var(--primary); font-weight: 700; margin-bottom: 14px;">
+                Please upload a genuine skin disease photo
+            </p>
+
+            <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: var(--radius-md); padding: 14px 18px; font-size: 14px; color: #9f1239; margin-bottom: 18px; text-align: left; line-height: 1.5;">
+                <strong style="display: block; margin-bottom: 4px; color: #881337;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Detection Details:
+                </strong>
+                <span id="modalReasonText">The uploaded photo does not appear to be a clinical skin disease image.</span>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 14px 18px; text-align: left; font-size: 13.5px; color: var(--text-secondary); margin-bottom: 22px;">
+                <p style="font-weight: 700; color: var(--primary); margin-bottom: 6px;">
+                    <i class="fa-solid fa-lightbulb"></i> Acceptable Clinical Photos:
+                </p>
+                <ul style="padding-left: 18px; margin: 0; line-height: 1.6;">
+                    <li>Clear close-up photograph of human skin lesions, rashes, or moles</li>
+                    <li>Adequate natural light showing dermal texture and borders</li>
+                    <li>Avoid photos of pets, vehicles, documents, food, or screenshots</li>
+                </ul>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="modalActionBtn" style="width: 100%;">
+                <i class="fa-solid fa-camera"></i> Select Correct Skin Photo
+            </button>
+        </div>
+    </div>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const imageInput = document.getElementById('imageInput');
+        const browseTriggerBtn = document.getElementById('browseTriggerBtn');
+        const previewCard = document.getElementById('previewCard');
+        const previewStage = document.getElementById('previewStage');
+        const previewImg = document.getElementById('previewImg');
+        const metaFilename = document.getElementById('metaFilename');
+        const metaFilesize = document.getElementById('metaFilesize');
+        const resetUploadBtn = document.getElementById('resetUploadBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const analysisProgressCard = document.getElementById('analysisProgressCard');
+
+        // Tab Elements
+        const tabUploadBtn = document.getElementById('tabUploadBtn');
+        const tabCameraBtn = document.getElementById('tabCameraBtn');
+        const cameraPanel = document.getElementById('cameraPanel');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+        const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+
+        // Mobile Nav
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+            });
+        }
+
+        let mediaStream = null;
+
+        // Browse Button Trigger
+        browseTriggerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            imageInput.click();
+        });
+
+        dropZone.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        // Tab Switching
+        tabUploadBtn.addEventListener('click', () => {
+            tabUploadBtn.classList.add('active');
+            tabCameraBtn.classList.remove('active');
+            dropZone.style.display = 'block';
+            cameraPanel.style.display = 'none';
+            stopCamera();
+        });
+
+        tabCameraBtn.addEventListener('click', () => {
+            tabCameraBtn.classList.add('active');
+            tabUploadBtn.classList.remove('active');
+            dropZone.style.display = 'none';
+            cameraPanel.style.display = 'block';
+            startCamera();
+        });
+
+        // Camera Logic
+        async function startCamera() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                cameraVideo.srcObject = mediaStream;
+            } catch (err) {
+                console.error("Camera access error:", err);
+                alert("Could not access camera. Please verify camera permissions or upload an image file.");
+                tabUploadBtn.click();
+            }
+        }
+
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        }
+
+        cancelCameraBtn.addEventListener('click', () => {
+            tabUploadBtn.click();
+        });
+
+        // Capture from Camera
+        capturePhotoBtn.addEventListener('click', () => {
+            if (!cameraVideo.videoWidth) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = cameraVideo.videoWidth;
+            canvas.height = cameraVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const file = new File([blob], `camera_capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                
+                // Assign to input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                imageInput.files = dataTransfer.files;
+
+                handleFile(file);
+                tabUploadBtn.click();
+            }, 'image/jpeg', 0.95);
+        });
+
+        // File Handler
+        function handleFile(file) {
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size exceeds 10 MB limit. Please select a smaller photo.');
+                return;
+            }
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
+            if (!validTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|webp|bmp)$/i)) {
+                alert('Invalid file format. Please upload JPG, PNG, WEBP, or BMP format.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                metaFilename.innerHTML = `<i class="fa-solid fa-image"></i> ${file.name}`;
+                metaFilesize.innerHTML = `<i class="fa-solid fa-hard-drive"></i> ${(file.size / 1024).toFixed(1)} KB`;
+                
+                previewCard.style.display = 'block';
+                submitBtn.style.display = 'inline-flex';
+                dropZone.style.display = 'none';
+
+                // Scroll preview into view smoothly
+                previewCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        imageInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Drag & Drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) {
+                imageInput.files = e.dataTransfer.files;
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        // Reset Upload
+        resetUploadBtn.addEventListener('click', () => {
+            imageInput.value = '';
+            previewCard.style.display = 'none';
+            submitBtn.style.display = 'none';
+            dropZone.style.display = 'block';
+        });
+
+        // Form Submit & High-Tech Scan Ticker
+        uploadForm.addEventListener('submit', function() {
+            submitBtn.style.display = 'none';
+            resetUploadBtn.style.display = 'none';
+            analysisProgressCard.style.display = 'block';
+            previewStage.classList.add('scanning-active');
+
+            // Progressive step simulator for perceived speed & high-tech polish
+            setTimeout(() => {
+                const s2 = document.getElementById('step2');
+                const s3 = document.getElementById('step3');
+                if (s2) {
+                    s2.className = 'ticker-step done';
+                    s2.innerHTML = '<i class="fa-solid fa-check-circle"></i> Epidermal skin texture verified';
+                }
+                if (s3) {
+                    s3.className = 'ticker-step active';
+                    s3.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Extracting CNN convolutional feature layers...';
+                }
+            }, 700);
+
+            setTimeout(() => {
+                const s3 = document.getElementById('step3');
+                const s4 = document.getElementById('step4');
+                if (s3) {
+                    s3.className = 'ticker-step done';
+                    s3.innerHTML = '<i class="fa-solid fa-check-circle"></i> Feature vector extracted';
+                }
+                if (s4) {
+                    s4.className = 'ticker-step active';
+                    s4.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Computing differential class probabilities...';
+                }
+            }, 1400);
+        });
+
+        // INVALID IMAGE MODAL
+        const invalidImageModal = document.getElementById('invalidImageModal');
+        const modalReasonText = document.getElementById('modalReasonText');
+        const modalActionBtn = document.getElementById('modalActionBtn');
+        const closeModalXBtn = document.getElementById('closeModalXBtn');
+
+        function openInvalidImageModal(reason) {
+            if (reason) {
+                modalReasonText.textContent = reason;
+            } else {
+                modalReasonText.textContent = "The uploaded photo does not appear to be a clinical skin disease image. Please upload a clear photo of the affected skin area.";
+            }
+            if (invalidImageModal) {
+                invalidImageModal.classList.add('active');
+            }
+            if (analysisProgressCard) analysisProgressCard.style.display = 'none';
+            if (submitBtn) submitBtn.style.display = 'inline-flex';
+            if (previewStage) previewStage.classList.remove('scanning-active');
+        }
+
+        function closeInvalidImageModal() {
+            if (invalidImageModal) {
+                invalidImageModal.classList.remove('active');
+            }
+            imageInput.value = '';
+            previewCard.style.display = 'none';
+            dropZone.style.display = 'block';
+        }
+
+        if (closeModalXBtn) {
+            closeModalXBtn.addEventListener('click', closeInvalidImageModal);
+        }
+
+        if (modalActionBtn) {
+            modalActionBtn.addEventListener('click', function() {
+                closeInvalidImageModal();
+                setTimeout(() => {
+                    imageInput.click();
+                }, 100);
+            });
+        }
+
+        if (invalidImageModal) {
+            invalidImageModal.addEventListener('click', function(e) {
+                if (e.target === invalidImageModal) {
+                    closeInvalidImageModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && invalidImageModal && invalidImageModal.classList.contains('active')) {
+                closeInvalidImageModal();
+            }
+        });
+    </script>
+
+</body>
+</html>

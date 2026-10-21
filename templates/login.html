@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Login | SkinCare AI</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Central Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0fdfa, #eff6ff);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-wrapper {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            border-radius: var(--radius-xl);
+            padding: 40px 36px;
+            box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.12);
+            border: 1px solid var(--card-border);
+        }
+
+        .auth-logo-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .auth-logo-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 20px rgba(30, 58, 138, 0.25);
+        }
+
+        .auth-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--card-border);
+            font-size: 14.5px;
+            outline: none;
+            transition: all var(--transition-fast);
+            background: #f8fafc;
+        }
+
+        .form-input:focus {
+            background: #ffffff;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .toggle-password-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        .toggle-password-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .auth-submit-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 15.5px;
+            margin-top: 8px;
+        }
+
+        .auth-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .back-home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 20px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .back-home-link:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-wrapper">
+        
+        <div class="auth-card">
+            
+            <div class="auth-logo-center">
+                <a href="{{ url_for('index') }}" class="auth-logo-icon">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </a>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Log in to your SkinCare AI clinical account</p>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-alert flash-{{ category }}" role="alert">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('login') }}" method="POST">
+                
+                <div class="form-group">
+                    <label for="emailInput" class="form-label">Email Address</label>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="emailInput" name="email" class="form-input" placeholder="name@example.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passwordInput" class="form-label">Password</label>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="passwordInput" name="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+                        <button type="button" class="toggle-password-btn" id="togglePasswordBtn" aria-label="Toggle password visibility">
+                            <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary auth-submit-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
+                </button>
+
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? 
+                <a href="{{ url_for('signup') }}" style="font-weight: 700;">Create one here</a>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ url_for('index') }}" class="back-home-link">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Homepage
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const passwordInput = document.getElementById('passwordInput');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+        if (togglePasswordBtn && passwordInput) {
+            togglePasswordBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                togglePasswordIcon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            });
+        }
+    </script>
+
+</body>
+</html>

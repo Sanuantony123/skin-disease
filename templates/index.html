@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkinCare AI | Deep Learning Dermatological Classification</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Central Theme Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <style>
+        .hero-section {
+            max-width: 1240px;
+            margin: 60px auto 40px;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .hero-title {
+            font-size: 50px;
+            line-height: 1.15;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+        }
+
+        .hero-title .gradient-text {
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            line-height: 1.65;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            max-width: 580px;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .hero-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            border-top: 1px solid var(--card-border);
+            padding-top: 24px;
+        }
+
+        .stat-item h3 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 2px;
+        }
+
+        .stat-item p {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Hero Preview Mockup Card */
+        .hero-mockup-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.12);
+            position: relative;
+        }
+
+        .mockup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .mockup-status-badge {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mockup-lesion-box {
+            position: relative;
+            height: 200px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .mockup-laser {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+            box-shadow: 0 0 14px 3px rgba(20, 184, 166, 0.7);
+            animation: scanLaser 2s infinite alternate ease-in-out;
+        }
+
+        .mockup-finding-box {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+        }
+
+        .mockup-finding-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Features Section */
+        .features-section {
+            background: #ffffff;
+            border-top: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
+            padding: 80px 24px;
+        }
+
+        .section-header-center {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+
+        .section-header-center h2 {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .feature-cards-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+        }
+
+        .feature-box {
+            background: #f8fafc;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 32px 26px;
+            transition: all var(--transition-smooth);
+        }
+
+        .feature-box:hover {
+            transform: translateY(-4px);
+            background: #ffffff;
+            border-color: #93c5fd;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: #eff6ff;
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .feature-box h3 {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .feature-box p {
+            font-size: 14.5px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* 3-Step Process */
+        .process-section {
+            max-width: 1200px;
+            margin: 80px auto;
+            padding: 0 24px;
+        }
+
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 40px;
+        }
+
+        .step-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            position: relative;
+            text-align: center;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-accent));
+            color: white;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .step-card h4 {
+            font-size: 18px;
+            font-weight: 800;
+            margin: 14px 0 10px;
+            color: var(--text-primary);
+        }
+
+        .step-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* Call to Action Banner */
+        .cta-banner {
+            max-width: 1200px;
+            margin: 40px auto 80px;
+            padding: 50px 40px;
+            border-radius: var(--radius-xl);
+            background: linear-gradient(135deg, #1e3a8a, #0d9488);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.2);
+        }
+
+        .cta-banner-text h2 {
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .cta-banner-text p {
+            color: #ccfbf1;
+            font-size: 16px;
+            max-width: 580px;
+        }
+
+        @media (max-width: 960px) {
+            .hero-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .hero-desc {
+                margin: 0 auto 32px;
+            }
+            .hero-cta-group {
+                justify-content: center;
+            }
+            .feature-cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+            .cta-banner {
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <div class="brand-icon-wrap">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">
+                        SkinCare 
+                    </div>
+                    <span class="brand-subtitle">Clinical Dermatology Screening</span>
+                </div>
+            </a>
+
+            <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="{{ url_for('index') }}" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a></li>
+                    <li><a href="{{ url_for('model_info') }}" class="nav-link"><i class="fa-solid fa-chart-line"></i> Model Info</a></li>
+                    <li><a href="{{ url_for('about') }}" class="nav-link"><i class="fa-solid fa-circle-info"></i> About</a></li>
+                    <li><a href="{{ url_for('login') }}" class="nav-link"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</a></li>
+                    <li><a href="{{ url_for('signup') }}" class="nav-cta-btn"><i class="fa-solid fa-user-plus"></i> Get Started</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+
+        <!-- 1. Hero Section -->
+        <section class="hero-section">
+            <div>
+                <div class="page-badge">
+                    <i class="fa-solid fa-bolt"></i> Deep Learning Neural Diagnosis 
+                </div>
+
+                <h1 class="hero-title">
+                    Precision AI for <br>
+                    <span class="gradient-text">Dermatological Screening</span>
+                </h1>
+
+                <p class="hero-desc">
+                    Upload a skin image and our model predict possible skin disease.Get quick insights and take the right step towards better skin health. Our AI provides differential diagnosis, and evidence-based medical education.
+                </p>
+
+                <div class="hero-cta-group">
+                    <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">
+                        <i class="fa-solid fa-camera"></i> Start Free Skin Scan
+                    </a>
+                    <a href="{{ url_for('model_info') }}" class="btn btn-secondary btn-lg">
+                        <i class="fa-solid fa-microchip"></i> Explore AI Architecture
+                    </a>
+                </div>
+
+                <div class="hero-stats-row">
+                    <div class="stat-item">
+                        <h3>7+</h3>
+                        <p>Skin Conditions</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>&lt; 1-3s</h3>
+                        <p>Prediction Time</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>24/7</h3>
+                        <p>Scan Access</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulated Diagnostic Mockup -->
+            <div class="hero-mockup-card">
+                <div class="mockup-header">
+                    <div style="font-weight: 700; font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-brain" style="color: var(--primary-accent);"></i> Neural Diagnostic Preview
+                    </div>
+                    <span class="mockup-status-badge">
+                        <i class="fa-solid fa-circle-check"></i> Analysis Complete
+                    </span>
+                </div>
+
+                <div class="mockup-lesion-box">
+                    <i class="fa-solid fa-hand-dots" style="font-size: 48px; opacity: 0.3;"></i>
+                    <div class="mockup-laser"></div>
+                    <div style="position: absolute; bottom: 10px; left: 14px; font-size: 11.5px; opacity: 0.8;">
+                        <i class="fa-solid fa-crosshairs"></i> MobileNetV2 Texture Mapping
+                    </div>
+                </div>
+
+                <div class="mockup-finding-box">
+                    <div class="mockup-finding-title">
+                        
+                    </div>
+                    <div class="meter-bar-track" style="margin-bottom: 6px;">
+                        <div class="meter-bar-fill" style="width: 96.4%;"></div>
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+                        Top differential match • Barrier hydration protocol recommended
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Features Grid -->
+        <section class="features-section">
+            <div class="section-header-center">
+                <div class="page-badge">
+                    <i class="fa-solid fa-sparkles"></i> Advanced Capabilities
+                </div>
+                <h2>Built For Clinical Diagnostic Rigor</h2>
+                <p>Designed to deliver high-confidence dermatological screening assistance with safety-first validation guardrails.</p>
+            </div>
+
+            <div class="feature-cards-grid">
+                <div class="feature-box">
+                    <div class="feature-icon-wrap">
+                        <i class="fa-solid fa-shield-virus"></i>
+                    </div>
+                    <h3>Smart Non-Skin Filter</h3>
+                    <p>
+                        Dual-stage validation rejects non-skin uploads (pets, vehicles, documents, household items) before disease inference runs.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon-wrap">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                    <h3>23 Disease Classifications</h3>
+                    <p>
+                        Covers a wide spectrum from acne, psoriasis, and dermatitis to precancerous and malignant lesions.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon-wrap">
+                        <i class="fa-solid fa-diagram-project"></i>
+                    </div>
+                    <h3>Differential Diagnoses</h3>
+                    <p>
+                        Computes full softmax probability distributions, displaying top-3 candidate conditions for clinical differential analysis.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon-wrap">
+                        <i class="fa-solid fa-prescription-bottle-medical"></i>
+                    </div>
+                    <h3>Actionable Clinical Care</h3>
+                    <p>
+                        Detailed etiologies, daily barrier care regimens, medical treatments, dietary guidance, and emergency red flags.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon-wrap">
+                        <i class="fa-solid fa-print"></i>
+                    </div>
+                    <h3>Printable Medical Reports</h3>
+                    <p>
+                        Generate and print one-click certified clinical diagnostic summary reports formatted specifically for physician consultations.
+                    </p>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon-wrap">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3>Private & Confidential</h3>
+                    <p>
+                        Your personal health scans and records are secured in your private dashboard account with instant history management.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Three-Step Process -->
+        <section class="process-section">
+            <div class="section-header-center">
+                <div class="page-badge">
+                    <i class="fa-solid fa-arrow-progress"></i> Simple Workflow
+                </div>
+                <h2>How SkinCare AI Works</h2>
+                <p>Three straightforward steps from skin photo to full evidence-based assessment.</p>
+            </div>
+
+            <div class="process-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="feature-icon-wrap" style="margin: 0 auto 16px;">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <h4>Capture or Upload</h4>
+                    <p>Take a clear, focused photo of the skin lesion or upload an existing image from your phone or computer.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="feature-icon-wrap" style="margin: 0 auto 16px;">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h4>Neural Inference</h4>
+                    <p>The image is validated for human dermal texture, followed by feature extraction across 23 disease categories.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="feature-icon-wrap" style="margin: 0 auto 16px;">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <h4>Review & Print Report</h4>
+                    <p>Inspect confidence metrics, differential matches, causes, treatment guidance, and export a report for your doctor.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Bottom CTA Banner -->
+        <section class="cta-banner">
+            <div class="cta-banner-text">
+                <h2>Ready To Screen Your Skin Health?</h2>
+                <p>Create your free account today and experience fast, deep learning dermatological image analysis.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('signup') }}" class="btn btn-secondary btn-lg" style="background: white; color: var(--primary);">
+                    <i class="fa-solid fa-user-plus"></i> Create Free Account
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="brand-title">
+                    🩺 SkinCare <span class="ai-chip">AI</span>
+                </div>
+                <p class="footer-desc">
+                    Educational dermatological screening platform powered by transfer-learning deep neural networks.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Platform</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('signup') }}">Register</a></li>
+                    <li><a href="{{ url_for('model_info') }}">Model Architecture</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Information</h4>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('about') }}">About System</a></li>
+                    <li><a href="{{ url_for('model_info') }}">23 Categories</a></li>
+                    <li><a href="{{ url_for('about') }}">Medical Advisory</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>System Status</h4>
+                <div class="footer-status-card">
+                    <div class="status-indicator">
+                        <div class="status-pulse-dot"></div>
+                        Model Server Active
+                    </div>
+                    <p>MobileNetV2 Fine-Tuned (23 classes) • Non-Skin Validator Active</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 SkinCare AI System. Educational Deep Learning Research Prototype.</span>
+            <span>Always consult a certified dermatologist for clinical diagnosis.</span>
+        </div>
+    </footer>
+
+    <script>
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const navMenu = document.getElementById('navMenu');
+        if (mobileNavToggle) {
+            mobileNavToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+            });
+        }
+    </script>
+
+</body>
+</html>
